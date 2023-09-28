@@ -16,20 +16,22 @@ async def interact_with_calculator_server():
         if operator not in ["add", "subtract", "multiply", "divide", "clear", "put_in"]:
             print("Invalid operator. Please enter a valid operator or 'Q' to quit.")
             continue
+        if operator != "clear":
+            try:
+                num = float(input("Enter a number: "))
+            except ValueError:
+                print("Invalid input. Please enter a valid number.")
+                continue
+        else:
+            num = 0
 
-        try:
-            num = float(input("Enter a number: "))
-        except ValueError:
-            print("Invalid input. Please enter a valid number.")
-            continue
 
+        url = "http://localhost:8000/connect-nats"  # URL of the calculator service
 
-        url = f"http://localhost:8000/connect-nats"  # URL of the calculator service
-
-        headers = {"user-id": f"{id}" , "operator" : f"{operator}", "num" : f"{num}"}  # desired user agent
+        headers = {"user-id": f"{id}" , "operator" : f"{operator}", "num" : f"{num}","port" : f"{port}"}  # desired user agent
 
         async with httpx.AsyncClient() as client:
-            response = await client.patch(url, headers=headers)
+            response = await client.get(url, headers=headers,timeout=20)
 
         if response.status_code == 200:
             result = response.json()["result"]
